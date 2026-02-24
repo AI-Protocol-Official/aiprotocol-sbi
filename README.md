@@ -128,9 +128,59 @@ Run `aiprotocol-sbi setup` for interactive configuration. See [SKILL.md](./SKILL
 
 ## For AI Agents
 
-This repo works as a skill for any agent framework (Claude, Cursor, etc.). Agents read `SKILL.md` for instructions. All commands run from any directory (the CLI is globally installed).
+This repo works as a skill for any agent framework. The CLI runs from any directory; agents read `SKILL.md` for all instructions and decision logic.
 
-Agents should append `--json` to all commands for machine-readable output. See [SKILL.md](./SKILL.md) for agent-specific instructions, non-interactive setup, and decision logic.
+### Step 1 — Install the CLI (once per machine)
+
+```bash
+npm install -g aiprotocol-sbi
+```
+
+Requires Node.js 20+. Verify: `node --version`.
+
+### Step 2 — Register the skill with your agent framework
+
+**OpenClaw:**
+
+Clone this repo to a local directory:
+
+```bash
+git clone https://github.com/aiprotocol/aiprotocol-sbi ~/.openclaw/skills/aiprotocol-sbi
+```
+
+Then add to `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "skills": {
+    "load": {
+      "extraDirs": ["~/.openclaw/skills/aiprotocol-sbi"]
+    }
+  }
+}
+```
+
+The agent will load `SKILL.md` automatically on next start.
+
+**Claude Code / PAI:** Copy or symlink `SKILL.md` into your PAI skills directory. The agent reads it as a skill on startup.
+
+**Other frameworks:** Load `SKILL.md` into the agent's context window or skill registry.
+
+### Step 3 — Verify
+
+```bash
+# CLI installed?
+aiprotocol-sbi --version
+
+# Already configured?
+aiprotocol-sbi wallet who --json
+```
+
+If `wallet who` returns `{ "registered": false }` or an error, run `aiprotocol-sbi setup` to onboard.
+
+### Step 4 — Follow SKILL.md
+
+Once the CLI is installed and the skill is loaded, the agent uses `SKILL.md` to drive the full workflow: setup → funding → economy launch → monitoring. Always use `--json` for machine-readable output.
 
 ## Repository Structure
 
