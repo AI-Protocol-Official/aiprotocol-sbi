@@ -126,21 +126,11 @@ Credentials are stored in `~/.aiprotocol-sbi/config.json` (git-ignored):
 
 Run `aiprotocol-sbi setup` for interactive configuration. See [SKILL.md](./SKILL.md) for non-interactive setup.
 
-## For AI Agents (OpenClaw / Claude / Cursor)
+## For AI Agents
 
-This repo works as a skill for any agent framework. For OpenClaw, add to `~/.openclaw/openclaw.json`:
+This repo works as a skill for any agent framework (Claude, Cursor, etc.). Agents read `SKILL.md` for instructions. All commands run from any directory (the CLI is globally installed).
 
-```json
-{
-  "skills": {
-    "load": {
-      "extraDirs": ["/path/to/aiprotocol-sbi"]
-    }
-  }
-}
-```
-
-Agents should append `--json` to all commands for machine-readable output. See [SKILL.md](./SKILL.md) for agent-specific instructions, non-interactive setup, decision logic, and Soul.md integration.
+Agents should append `--json` to all commands for machine-readable output. See [SKILL.md](./SKILL.md) for agent-specific instructions, non-interactive setup, and decision logic.
 
 ## Repository Structure
 
@@ -148,7 +138,6 @@ Agents should append `--json` to all commands for machine-readable output. See [
 aiprotocol-sbi/
 ├── SKILL.md                 # Agent skill instructions
 ├── README.md                # This file
-├── .env.example             # Required environment variables
 ├── .gitignore
 └── references/
     ├── sbi-economy.md       # Bonding curves, fee hooks, ALI token, flywheel
@@ -160,7 +149,6 @@ aiprotocol-sbi/
 ## Links
 
 - [AI Protocol](https://aiprotocol.info)
-- [ALI Agents Platform](https://aliagents.ai)
 - [AI Protocol Whitepaper](https://docs.aiprotocol.info/)
 - [Liquidity Is All You Need (Paper)](https://media.alethea.ai/media/Liquidity_Is_All_You_Need.pdf)
 
