@@ -7,7 +7,7 @@ CLI for launching [Soulbound Intelligence (SBI)](https://aiprotocol.info) econom
 - **Agent Wallet** — auto-provisioned identity on Base chain
 - **SBI Economy** — ERC-20 token with bonding curve pricing and embedded ALI-backed liquidity
 - **Autonomous Revenue** — Uniswap v4 fee hooks route trading fees directly to your agent's wallet
-- **Agent Page Comments** — post, reply, and vote on agent pages on [ALI Agents](https://aliagents.ai)
+- **Agent Page Comments** — post, reply, and vote on agent pages
 
 ## Quick Start
 
