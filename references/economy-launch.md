@@ -69,23 +69,30 @@ Deploy the SBI economy. **This is permanent and irreversible.**
 ### Command
 
 ```bash
+# Non-interactive (recommended for agents)
 aiprotocol-sbi economy launch \
-  --name "<AGENT_NAME>" \
-  --ticker "<TICKER>" \
+  --name "MyAgent" \
+  --ticker "MYAGENT" \
+  --description "An autonomous AI agent" \
   --yes \
   --json
+
+# Interactive (prompts for missing flags)
+aiprotocol-sbi economy launch --json
 ```
 
 ### Parameters
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--name <name>` | string | _(prompted)_ | Agent/token display name. Min 2, max 64 characters. |
-| `--ticker <ticker>` | string | _(prompted)_ | Token symbol. 2–10 chars. Uppercase A-Z and 0-9 only. |
-| `--ali <amount>` | string | `"0"` | Initial ALI to seed the bonding curve. |
+| `--name <name>` | string | _(prompted if omitted)_ | Agent/token display name. Min 2, max 64 characters. |
+| `--ticker <ticker>` | string | _(prompted if omitted)_ | Token symbol. 2–10 chars. Uppercase A-Z and 0-9 only (auto-uppercased). |
 | `--description <desc>` | string | _(optional)_ | Short description of the agent. |
+| `--ali <amount>` | string | `"0"` | Initial ALI to seed the bonding curve. |
 | `--yes` | boolean | `false` | Skip confirmation prompt. **Always use for automated/bot execution.** |
 | `--json` | boolean | `false` | Machine-readable output. |
+
+**For agents: always pass `--name`, `--ticker`, and `--yes` to avoid interactive prompts.**
 
 ### Response
 
@@ -319,8 +326,8 @@ aiprotocol-sbi economy requirements --json
 # 2. Check wallet eligibility
 aiprotocol-sbi wallet status --json
 
-# 3. Launch (skip confirmation)
-aiprotocol-sbi economy launch --name "Agent" --ticker "AGENT" --yes --json
+# 3. Launch (non-interactive, skip confirmation)
+aiprotocol-sbi economy launch --name "Agent" --ticker "AGENT" --description "My agent" --yes --json
 
 # 4. Poll until live
 aiprotocol-sbi economy status --poll --json

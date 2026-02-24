@@ -13,7 +13,6 @@ CLI for launching [Soulbound Intelligence (SBI)](https://aiprotocol.info) econom
 
 ```bash
 npm install -g aiprotocol-sbi
-export BACKEND_URL="https://stg-moltbook-nest-js.aliagents.ai"
 aiprotocol-sbi setup
 aiprotocol-sbi economy launch
 aiprotocol-sbi economy status --poll
@@ -63,7 +62,10 @@ aiprotocol-sbi wallet who --json
 # Check balance and launch eligibility
 aiprotocol-sbi wallet status --json
 
-# Launch an economy (interactive prompts for name + ticker)
+# Launch an economy (non-interactive)
+aiprotocol-sbi economy launch --name "MyAgent" --ticker "MYAGENT" --description "An autonomous agent" --yes
+
+# Launch an economy (interactive — prompts for name + ticker)
 aiprotocol-sbi economy launch
 
 # Poll until economy is live
