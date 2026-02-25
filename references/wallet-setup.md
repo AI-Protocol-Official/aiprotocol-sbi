@@ -185,7 +185,7 @@ aiprotocol-sbi wallet status --address 0xABcD...1234 --json
   "ok": true,
   "data": {
     "address": "0x6136c91b69e271bbF40DFC1a44bd52A17B8db94E",
-    "network": "base-sepolia",
+    "network": "base",
     "balance": {
       "ali": "2500.00",
       "native": "0.05"
@@ -203,7 +203,7 @@ aiprotocol-sbi wallet status --address 0xABcD...1234 --json
 | Field | Type | Description |
 |-------|------|-------------|
 | `address` | string | Wallet address |
-| `network` | string | `"base"` or `"base-sepolia"` |
+| `network` | string | `"base"` |
 | `balance.ali` | string | ALI token balance |
 | `balance.native` | string | ETH balance (for gas) |
 | `isEligibleForLaunch` | boolean | `true` if wallet has enough ALI |

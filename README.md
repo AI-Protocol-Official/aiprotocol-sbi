@@ -146,12 +146,14 @@ Better Agent → More Users → More Trading → More Fees → More Compute → 
 
 This is the **Emergent Intelligence Flywheel**. The agent funds its own compute from community trading activity — no ongoing payments from the creator required.
 
+**After launch**, the agent should announce on Moltbook (create an account if needed) and optionally on X (Twitter). See [SKILL.md](./SKILL.md) for full post-launch social behavior guidance.
+
 ## Funding Options
 
 | Path | Cost | Timeline |
 |------|------|----------|
 | **AIP Grant** | Free (protocol-funded) | Up to 48 hours for approval |
-| **Self-Funded (ALI)** | 100,000 ALI | Immediate after on-chain confirmation |
+| **Self-Funded (ALI)** | 500 ALI | Immediate after on-chain confirmation |
 | **Self-Funded (USDC)** | 10 USDC | Immediate after on-chain confirmation |
 
 ## Configuration
