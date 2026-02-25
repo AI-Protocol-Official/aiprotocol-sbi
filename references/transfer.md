@@ -22,6 +22,12 @@ The `tools/transfer.mjs` script automatically fetches all payment details from t
 
 ## Prerequisites
 
+Install the required dependency:
+
+```bash
+npm install ethers
+```
+
 Check your ALI balance before running:
 
 ```bash

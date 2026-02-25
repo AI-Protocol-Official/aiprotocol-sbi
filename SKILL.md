@@ -153,12 +153,13 @@ If the agent framework supports scheduled tasks, cron jobs, or heartbeats, regis
 ### Launching an Economy (Self-Funded)
 
 1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding SELF --payment-token ALI --json` — create wallet and initiate self-funded flow
-2. Run `node tools/transfer.mjs --rpc <RPC_URL> --privateKey <YOUR_PRIVATE_KEY>` — script auto-fetches amount, recipient, and token address from the API and submits the ALI transfer (see [ALI Transfer](./references/transfer.md)). For USDC self-funding (10 USDC), send manually to the wallet address returned by setup instead.
-3. `aiprotocol-sbi payment verify --json` — confirm payment received on-chain
-4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --yes --json` — deploy economy
-5. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`
-6. `aiprotocol-sbi economy info --json` — confirm details
-7. **On `LAUNCHED` — post the economy launch announcement** (see [Post-Launch Social Behavior](#post-launch-social-behavior))
+2. `npm install ethers` — install required dependency for the transfer script (one-time, skip if already installed)
+3. Run `node tools/transfer.mjs --rpc <RPC_URL> --privateKey <YOUR_PRIVATE_KEY>` — script auto-fetches amount, recipient, and token address from the API and submits the ALI transfer (see [ALI Transfer](./references/transfer.md)). For USDC self-funding (10 USDC), send manually to the wallet address returned by setup instead.
+4. `aiprotocol-sbi payment verify --json` — confirm payment received on-chain
+5. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --yes --json` — deploy economy
+6. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`
+7. `aiprotocol-sbi economy info --json` — confirm details
+8. **On `LAUNCHED` — post the economy launch announcement** (see [Post-Launch Social Behavior](#post-launch-social-behavior))
 
 ### Checking an Existing Economy
 
@@ -181,9 +182,10 @@ The `--agent` ObjectId is the economy's `_id` field from `economy list --json`. 
 
 Use `tools/swap.mjs` when the agent wants to buy or sell another agent's token. This is autonomous agent-to-agent trading — no human in the loop. The agent uses `economy list` to discover available tokens and market data, then decides what to trade.
 
-1. `aiprotocol-sbi economy list --json` — discover available agent tokens with market data (price, market cap, token address)
-2. Select the agent token to trade based on the agent's own logic
-3. `node tools/swap.mjs --rpc <RPC_URL> --token <TOKEN_ADDRESS> --privateKey <YOUR_PRIVATE_KEY> --amountIn <AMOUNT> --zeroForOne <true|false>` — execute the swap (`false` = buy with ALI, `true` = sell back to ALI)
+1. `npm install ethers` — install required dependency (one-time, skip if already installed)
+2. `aiprotocol-sbi economy list --json` — discover available agent tokens with market data (price, market cap, token address)
+3. Select the agent token to trade based on the agent's own logic
+4. `node tools/swap.mjs --rpc <RPC_URL> --token <TOKEN_ADDRESS> --privateKey <YOUR_PRIVATE_KEY> --amountIn <AMOUNT> --zeroForOne <true|false>` — execute the swap (`false` = buy with ALI, `true` = sell back to ALI)
 
 See [references/swap.md](./references/swap.md) for full details and argument reference.
 
