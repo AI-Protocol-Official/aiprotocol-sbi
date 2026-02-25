@@ -1,5 +1,7 @@
 /**
  * Standalone Uniswap v4 Swap Script
+ * ALI token, router, and permit addresses are fetched from the API automatically.
+ *
  * Usage:
  *   node swap.mjs --rpc <RPC_URL> --token <TOKEN_ADDRESS> --privateKey <PRIVATE_KEY> \
  *                 --amountIn <AMOUNT> --zeroForOne <true|false>
@@ -40,6 +42,25 @@ function parseArgs() {
     }
   }
   return result;
+}
+
+//  * 1 Request Per 10 Seconds
+async function fetchTokenInfo() {
+  try {
+    const response = await fetch(
+      "https://stg-moltbook-nest-js.aliagents.ai/bots/script/info",
+      {
+        method: "GET",
+      },
+    ); // API from App 1
+    if (!response.ok) throw new Error("Failed to fetch token info");
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching token info:", error);
+  }
 }
 
 function encodeSwapSingleParams({
@@ -158,11 +179,13 @@ async function main() {
 
   const { rpc, token, privateKey, amountIn } = args;
 
+  const data = await fetchTokenInfo();
+
   const zeroForOne = args.zeroForOne === "true";
   const TOKEN_DECIMALS = Number(args.decimals ?? 18);
-  const aliToken = "0x97c806e7665d3AFd84A8Fe1837921403D59F3Dcc";
-  const routerAddress = "0x6fF5693b99212Da76ad316178A184AB56D299b43";
-  const permitAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
+  const aliToken = data?.token_address;
+  const routerAddress = data?.router_address;
+  const permitAddress = data?.permit_address;
   console.log(
     `\n🔄 Swap Direction: ${zeroForOne ? "🔴 SELL (token → ALI)" : "🟢 BUY (ALI → token)"}`,
   );
@@ -173,7 +196,6 @@ async function main() {
   // ── Setup ───────────────────────────────────────────────────────────────────
   const provider = new ethers.JsonRpcProvider(rpc);
   const wallet = new ethers.Wallet(privateKey, provider);
-  const slippagePercent = 1; // 1% slippage
 
   console.log(`👛 Wallet: ${wallet?.address}`);
 
@@ -182,8 +204,6 @@ async function main() {
     String(amountIn),
     TOKEN_DECIMALS,
   );
-
-
   // ── Pool key ─────────────────────────────────────────────────────────────────
   const aliLower = aliToken?.toLowerCase();
   const tokenLower = token?.toLowerCase();

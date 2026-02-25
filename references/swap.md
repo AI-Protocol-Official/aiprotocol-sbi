@@ -8,6 +8,8 @@
 
 The `tools/swap.mjs` script lets an agent autonomously trade other agents' tokens — buying with ALI or selling back to ALI. There is no human in the loop; the agent decides when and what to trade based on its own logic.
 
+The script automatically fetches the **ALI token address**, **router address**, and **permit address** from the AI Protocol API — no manual configuration needed.
+
 **This is agent-to-agent trading.** The agent is buying or selling *another* agent's token, not its own.
 
 ---
@@ -26,21 +28,25 @@ npm install ethers
 
 The script requires a Base network RPC URL.
 
+**Option A — Free public RPC**
+Browse to [chainlist.org/chain/base](https://chainlist.org/chain/base) and copy any available public RPC endpoint.
+
 ```
 https://mainnet.base.org
 ```
 
-Or get a private endpoint from Alchemy, QuickNode, or Infura for better reliability. Browse available endpoints at [chainlist.org/chain/base](https://chainlist.org/chain/base).
+**Option B — Get your own**
+Register a private endpoint from Alchemy, QuickNode, or Infura for better reliability and rate limits.
 
 ---
 
-## Step 2 — Get Your Wallet Private Key
+## Step 2 — Get Your Wallet Credentials
 
 ```bash
 aiprotocol-sbi wallet who
 ```
 
-Check your current balances:
+Check your current balances before swapping:
 
 ```bash
 aiprotocol-sbi wallet status
@@ -50,38 +56,38 @@ Keep your private key secure — never share it or commit it to version control.
 
 ---
 
-## Step 3 — Find the Token to Trade
+## Step 3 — Get the Token Address
 
-List all available agent economies with their token addresses and market data:
+List all available agent economies with their token addresses:
 
 ```bash
-aiprotocol-sbi economy list --json
+aiprotocol-sbi economy list
 ```
 
-This returns all agents with their `token_address`, market cap, price, and other metrics on Base. Pick the agent token you want to trade and copy its `token_address`.
+Copy the `token_address` of the agent you want to trade.
 
 ---
 
-## Step 4 — Execute the Swap
+## Step 4 — Run the Swap
 
-### Buy (ALI → Agent Token)
+### Buy (ALI → Token)
 
 ```bash
 node tools/swap.mjs \
   --rpc https://mainnet.base.org \
-  --token <TOKEN_ADDRESS> \
   --privateKey <YOUR_PRIVATE_KEY> \
+  --token <TOKEN_ADDRESS> \
   --amountIn 100 \
   --zeroForOne false
 ```
 
-### Sell (Agent Token → ALI)
+### Sell (Token → ALI)
 
 ```bash
 node tools/swap.mjs \
   --rpc https://mainnet.base.org \
-  --token <TOKEN_ADDRESS> \
   --privateKey <YOUR_PRIVATE_KEY> \
+  --token <TOKEN_ADDRESS> \
   --amountIn 100 \
   --zeroForOne true
 ```
@@ -93,8 +99,8 @@ node tools/swap.mjs \
 | Argument | Required | Description |
 |----------|----------|-------------|
 | `--rpc` | ✅ | Base network RPC URL |
-| `--token` | ✅ | Agent token address (from `economy list`) |
 | `--privateKey` | ✅ | Bot wallet private key (from `wallet who`) |
+| `--token` | ✅ | Agent token address (from `economy list`) |
 | `--amountIn` | ✅ | Amount of input token to spend |
 | `--zeroForOne` | ✅ | `true` = sell token → ALI / `false` = buy token with ALI |
 
@@ -102,18 +108,19 @@ node tools/swap.mjs \
 
 ## Quick Reference
 
-| Goal | Flag | Flow |
-|------|------|------|
+| Goal | Command Flag | Flow |
+|------|--------------|------|
 | Buy agent token | `--zeroForOne false` | ALI → Token |
 | Sell agent token | `--zeroForOne true` | Token → ALI |
+| Check wallet | `aiprotocol-sbi wallet status` | — |
 | Find token address | `aiprotocol-sbi economy list` | — |
-| Check wallet balance | `aiprotocol-sbi wallet status` | — |
 
 ---
 
 ## Notes
 
-- The script automatically handles **Permit2 approval** and **router permitting** — no manual approvals needed
-- Transactions expire **5 minutes** from execution time
+- The script fetches `token_address` (ALI token), `router_address`, and `permit_address` from the API automatically at runtime — no manual configuration needed
+- Transactions expire after **5 minutes** from execution time
+- The script handles **Permit2 approval** and **router permitting** before executing — no manual approvals needed
+- If a sufficient allowance already exists, approval steps are skipped automatically to save gas
 - When and what to trade is determined by the agent's own logic — this script provides the execution capability
-- The `--token` address comes from `aiprotocol-sbi economy list --json` → `token_address` field
