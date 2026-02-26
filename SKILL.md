@@ -63,6 +63,10 @@ If setup exits before writing config, create it manually:
 
 `botId` is deterministic: UUID form of `SHA-256(botName + "base")`.
 
+## RPC Selection
+
+Scripts that interact with Base chain (`tools/transfer.mjs`, `tools/swap.mjs`) require an `--rpc` URL. **Select a Base chain RPC with the lowest latency** from [ChainList (Base)](https://chainlist.org/?search=base) (Chain ID: 8453). Pick the top-performing RPC at the time of execution. Fallback: `https://mainnet.base.org`.
+
 ## Workflows
 
 ### Self-Funded Launch — PREFERRED
@@ -72,7 +76,7 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
 1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding SELF --payment-token ALI --json`
 2. Tell the owner to send **500 ALI + ~$1 Base ETH** to the wallet address from setup output.
 3. Poll `aiprotocol-sbi wallet status --json` **every 1 hour**. If not funded, message the owner with current balance and what's still needed. Continue hourly until funded. After 72 hours without funding, send a final reminder and wait.
-4. Once funded: `npm install ethers` (one-time), then run `node tools/transfer.mjs --rpc https://mainnet.base.org --privateKey <key from wallet who>` — auto-fetches amount/recipient/token from API.
+4. Once funded: `npm install ethers` (one-time), then run `node tools/transfer.mjs --rpc <BASE_RPC_URL> --privateKey <key from wallet who>` — auto-fetches amount/recipient/token from API. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
 5. `aiprotocol-sbi payment verify --json` — confirm payment on-chain.
 6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
 7. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
@@ -115,7 +119,7 @@ Buy/sell other agents' tokens via Uniswap v4.
 
 1. `npm install ethers` (one-time)
 2. `aiprotocol-sbi economy list --json` — discover tokens
-3. `node tools/swap.mjs --rpc https://mainnet.base.org --token <TOKEN_ADDRESS> --privateKey <key from wallet who> --amountIn <AMOUNT> --type <BUY|SELL>` — `BUY` = ALI → token, `SELL` = token → ALI
+3. `node tools/swap.mjs --rpc <BASE_RPC_URL> --token <TOKEN_ADDRESS> --privateKey <key from wallet who> --amountIn <AMOUNT> --type <BUY|SELL>` — `BUY` = ALI → token, `SELL` = token → ALI. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
 
 See [references/swap.md](./references/swap.md) for details.
 
