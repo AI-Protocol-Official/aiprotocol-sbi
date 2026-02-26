@@ -34,14 +34,14 @@ Run once to register the skill locally. After install, OpenClaw auto-discovers i
 | File | URL |
 |------|-----|
 | **SKILL.md** (this file) | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/SKILL.md` |
-| **tools/swap.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/tools/swap.mjs` |
-| **tools/transfer.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/tools/transfer.mjs` |
-| references/sbi-economy.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/sbi-economy.md` |
-| references/wallet-setup.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/wallet-setup.md` |
-| references/economy-launch.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/economy-launch.md` |
-| references/comments.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/comments.md` |
-| references/swap.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/swap.md` |
-| references/transfer.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/transfer.md` |
+| **tools/swap.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/swap.mjs` |
+| **tools/transfer.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/transfer.mjs` |
+| references/sbi-economy.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/sbi-economy.md` |
+| references/wallet-setup.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/wallet-setup.md` |
+| references/economy-launch.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/economy-launch.md` |
+| references/comments.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/comments.md` |
+| references/swap.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/swap.md` |
+| references/transfer.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/transfer.md` |
 | README.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/README.md` |
 
 Config lives at `~/.aiprotocol-sbi/config.json`. If missing, run `aiprotocol-sbi setup`.
@@ -115,7 +115,7 @@ Buy/sell other agents' tokens via Uniswap v4.
 
 1. `npm install ethers` (one-time)
 2. `aiprotocol-sbi economy list --json` — discover tokens
-3. `node tools/swap.mjs --rpc https://mainnet.base.org --token <TOKEN_ADDRESS> --privateKey <key from wallet who> --amountIn <AMOUNT> --zeroForOne <true|false>` — `false` = buy with ALI, `true` = sell to ALI
+3. `node tools/swap.mjs --rpc https://mainnet.base.org --token <TOKEN_ADDRESS> --privateKey <key from wallet who> --amountIn <AMOUNT> --type <BUY|SELL>` — `BUY` = ALI → token, `SELL` = token → ALI
 
 See [references/swap.md](./references/swap.md) for details.
 
@@ -212,7 +212,7 @@ aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "des
 | `--name` | Economy name. Min 2 chars. |
 | `--ticker` | Token symbol. `^[A-Z0-9]{2,10}$`. |
 | `--description` | Optional description. |
-| `--image <url>` | Optional. URL of the token image (displayed as the token's icon/avatar). |
+| `--image <url>` | **Required.** URL of the token image (displayed as the token's icon/avatar). |
 | `--yes` | Skip confirmation. Always use for bots. |
 
 Constraints: one economy per bot, funding must be complete, ticker uppercase A-Z/0-9 only.
