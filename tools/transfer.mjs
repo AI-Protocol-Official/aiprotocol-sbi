@@ -5,14 +5,12 @@
  * Usage:
  *   node transfer.mjs \
  *     --rpc <RPC_URL> \
- *     --privateKey <YOUR_PRIVATE_KEY> \
- *     --amount <AMOUNT>
+ *     --privateKey <YOUR_PRIVATE_KEY>
  *
  * Example:
  *   node transfer.mjs \
  *     --rpc https://mainnet.base.org \
- *     --privateKey 0xabc123... \
- *     --amount 500
+ *     --privateKey 0xabc123...
  */
 
 import { ethers } from "ethers";
@@ -78,6 +76,7 @@ async function main() {
   const aliToken = data?.token_address;
   const to = data?.to_address;
   const ali_threshold = data?.ali_threshold;
+
   // ── Validate recipient address ──────────────────────────────────────────────
   if (!ethers.isAddress(to)) {
     console.error(`❌ Invalid recipient address: ${to}`);
@@ -113,17 +112,54 @@ async function main() {
     process.exit(1);
   }
 
+  // ── Gas Estimation ────────────────────────────────────────────────────────
+  console.log(`⛽ Estimating gas...`);
+
+  const [estimatedGas, feeData, nativeBalance] = await Promise.all([
+    token.transfer.estimateGas(to, normalizedAmount),
+    provider.getFeeData(),
+    provider.getBalance(wallet.address),
+  ]);
+
+  // Add a 20% buffer to the estimated gas limit
+  const gasLimit = (estimatedGas * 120n) / 100n;
+
+  const gasPrice = feeData.gasPrice ?? feeData.maxFeePerGas;
+  const estimatedGasCostWei = gasLimit * gasPrice;
+  const estimatedGasCostEth = ethers.formatEther(estimatedGasCostWei);
+  const formattedNativeBalance = ethers.formatEther(nativeBalance);
+
+  console.log(`   Estimated gas units:  ${estimatedGas.toString()}`);
+  console.log(`   Gas limit (w/ buffer): ${gasLimit.toString()}`);
+  console.log(
+    `   Gas price:             ${ethers.formatUnits(gasPrice, "gwei")} gwei`,
+  );
+  console.log(`   Estimated cost:        ${estimatedGasCostEth} ETH`);
+  console.log(`   Native balance:        ${formattedNativeBalance} ETH\n`);
+
+  if (nativeBalance < estimatedGasCostWei) {
+    console.error(
+      `❌ Insufficient ETH for gas. Available: ${formattedNativeBalance} ETH, Required: ${estimatedGasCostEth} ETH`,
+    );
+    process.exit(1);
+  }
+
   // ── Transfer ──────────────────────────────────────────────────────────────
   console.log(`🚀 Submitting transfer...`);
-  const tx = await token.transfer(to, normalizedAmount);
+  const tx = await token.transfer(to, normalizedAmount, { gasLimit });
   console.log(`⏳ Waiting for confirmation... tx: ${tx.hash}`);
 
   const receipt = await tx.wait();
 
+  // ── Actual gas cost ───────────────────────────────────────────────────────
+  const actualGasCostWei = receipt.gasUsed * receipt.gasPrice;
+  const actualGasCostEth = ethers.formatEther(actualGasCostWei);
+
   console.log(`\n✅ Transfer confirmed!`);
-  console.log(`   Hash:      ${receipt.hash}`);
-  console.log(`   Block:     ${receipt.blockNumber}`);
-  console.log(`   Gas used:  ${receipt.gasUsed.toString()}`);
+  console.log(`   Hash:          ${receipt.hash}`);
+  console.log(`   Block:         ${receipt.blockNumber}`);
+  console.log(`   Gas used:      ${receipt.gasUsed.toString()}`);
+  console.log(`   Actual cost:   ${actualGasCostEth} ETH`);
 
   // ── Updated balance ───────────────────────────────────────────────────────
   const newBalance = await token.balanceOf(wallet.address);

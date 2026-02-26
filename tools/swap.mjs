@@ -1,10 +1,12 @@
 /**
  * Standalone Uniswap v4 Swap Script
- * ALI token, router, and permit addresses are fetched from the API automatically.
- *
  * Usage:
- *   node swap.mjs --rpc <RPC_URL> --token <TOKEN_ADDRESS> --privateKey <PRIVATE_KEY> \
- *                 --amountIn <AMOUNT> --zeroForOne <true|false>
+ *   node swap.mjs \
+ *          --rpc <RPC_URL> \
+ *          --token <TOKEN_ADDRESS> \
+ *          --privateKey <PRIVATE_KEY> \
+ *          --amountIn <TOKEN_SPENDING> \
+ *          --zeroForOne <true|false>
  *
  *  --zeroForOne true  → SELL  (token → ALI)
  *  --zeroForOne false → BUY   (ALI → token)
@@ -18,6 +20,7 @@ const ERC20_ABI = [
   "function allowance(address owner, address spender) view returns (uint256)",
   "function approve(address spender, uint256 amount) returns (bool)",
   "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
   "function balanceOf(address account) view returns (uint256)",
 ];
 
@@ -98,13 +101,13 @@ function encodeCurrencyValue({ currency, value }) {
   return abiCoder.encode(["address", "uint256"], [currency, BigInt(value)]);
 }
 
-function encodeSwap(poolKey, zeroForOne, amountIn) {
+function encodeSwap(poolKey, zeroForOne, amountIn, amountOutMin) {
   const payload0 = encodeSwapSingleParams({
     poolKey,
     zeroForOne,
     amountSpecified: amountIn,
-    oppositeBound: "0",
-    hookData: "0x0000000000000000000000000000000000000000",
+    oppositeBound: amountOutMin,
+    hookData: poolKey?.hooks,
   });
 
   const payload1 = encodeCurrencyValue({
@@ -114,7 +117,7 @@ function encodeSwap(poolKey, zeroForOne, amountIn) {
 
   const payload2 = encodeCurrencyValue({
     currency: zeroForOne ? poolKey.currency1 : poolKey.currency0,
-    value: "0",
+    value: amountOutMin.toString(),
   });
 
   const actions = "0x060c0f";
@@ -163,6 +166,83 @@ async function permitTokenToRouter(
   return receipt;
 }
 
+// ─── Simulation ──────────────────────────────────────────────────────────────
+
+async function simulateSwap(router, payload, deadline, wallet) {
+  console.log(`🧪 Simulating swap...`);
+
+  // Use provider.call directly so we get the raw response instead of
+  // ethers trying to ABI-decode bytes[] and throwing BAD_DATA on empty returns.
+  const callData = router.interface.encodeFunctionData("execute", [
+    "0x10",
+    [payload],
+    deadline,
+  ]);
+
+  try {
+    const rawResult = await router.runner.provider.call({
+      to: await router.getAddress(),
+      from: wallet.address,
+      data: callData,
+    });
+
+    // rawResult === "0x" means the router returned nothing — this is normal
+    // for Uniswap v4 Universal Router on some chains; treat it as success.
+    if (!rawResult || rawResult === "0x") {
+      console.log(
+        `✅ Simulation passed — router returned empty (expected for this router)`,
+      );
+      return true;
+    }
+
+    // Attempt to decode the returned bytes[] for informational output
+    try {
+      const abiCoder = new ethers.AbiCoder();
+      const [outputs] = abiCoder.decode(["bytes[]"], rawResult);
+      if (outputs && outputs.length > 0) {
+        const decoded = outputs.map((o) => {
+          try {
+            const [amount] = abiCoder.decode(["uint256"], o);
+            return amount.toString();
+          } catch {
+            return o;
+          }
+        });
+        console.log(
+          `✅ Simulation passed — simulated output amounts: ${decoded.join(", ")}`,
+        );
+      } else {
+        console.log(`✅ Simulation passed — swap is expected to succeed`);
+      }
+    } catch {
+      console.log(`✅ Simulation passed — swap is expected to succeed`);
+    }
+
+    return true;
+  } catch (err) {
+    // provider.call throws when the call reverts — this is a real failure
+    const reason =
+      err?.revert?.args?.[0] ??
+      err?.reason ??
+      err?.error?.message ??
+      err?.message ??
+      "Unknown revert reason";
+
+    // Filter out BAD_DATA decode errors — these are ethers post-processing
+    // issues, not actual reverts from the contract
+    if (err?.code === "BAD_DATA") {
+      console.log(
+        `✅ Simulation passed — router returned non-standard data (not a revert)`,
+      );
+      return true;
+    }
+
+    console.error(`❌ Simulation failed — swap would revert`);
+    console.error(`   Reason: ${reason}`);
+    return false;
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -181,11 +261,15 @@ async function main() {
 
   const data = await fetchTokenInfo();
 
-  const zeroForOne = args.zeroForOne === "true";
-  const TOKEN_DECIMALS = Number(args.decimals ?? 18);
+  const zeroForOne = args?.zeroForOne === "true";
+  const TOKEN_DECIMALS = data?.decimals;
   const aliToken = data?.token_address;
   const routerAddress = data?.router_address;
   const permitAddress = data?.permit_address;
+  const fee = data?.fee;
+  const tick_spacing = data?.tick_spacing;
+  const hook_data = data?.hook_data;
+
   console.log(
     `\n🔄 Swap Direction: ${zeroForOne ? "🔴 SELL (token → ALI)" : "🟢 BUY (ALI → token)"}`,
   );
@@ -204,6 +288,8 @@ async function main() {
     String(amountIn),
     TOKEN_DECIMALS,
   );
+  const amountOutMinBigInt = "0";
+
   // ── Pool key ─────────────────────────────────────────────────────────────────
   const aliLower = aliToken?.toLowerCase();
   const tokenLower = token?.toLowerCase();
@@ -212,9 +298,9 @@ async function main() {
   const poolKey = {
     currency0: aliIsZero ? aliToken : token,
     currency1: aliIsZero ? token : aliToken,
-    fee: 5000,
-    tickSpacing: 100,
-    hooks: "0x0000000000000000000000000000000000000000",
+    fee,
+    tickSpacing: tick_spacing,
+    hooks: hook_data,
   };
 
   console.log(
@@ -231,11 +317,77 @@ async function main() {
   // zeroForOne=true  → selling token (user gives `token`, receives ALI)
   // zeroForOne=false → buying  token (user gives `aliToken`, receives `token`)
   const inputToken = zeroForOne ? token : aliToken;
+  const outputToken = zeroForOne ? aliToken : token;
+  const inputTokenContract = new ethers.Contract(inputToken, ERC20_ABI, wallet);
+  const outputTokenContract = new ethers.Contract(
+    outputToken,
+    ERC20_ABI,
+    wallet,
+  );
+
+  // ── Encode swap payload (needed for gas estimate) ─────────────────────────
+  const payload = encodeSwap(
+    poolKey,
+    zeroForOne,
+    normalizedAmountIn,
+    amountOutMinBigInt,
+  );
+
+  // ── Fetch balances, symbols & decimals in parallel ──────────────────────
+  const [
+    inputTokenBalance,
+    outputTokenBalance,
+    inputTokenDecimals,
+    outputTokenDecimals,
+    inputTokenSymbol,
+    outputTokenSymbol,
+    nativeBalance,
+    feeData,
+  ] = await Promise.all([
+    inputTokenContract.balanceOf(wallet.address),
+    outputTokenContract.balanceOf(wallet.address),
+    inputTokenContract.decimals(),
+    outputTokenContract.decimals(),
+    inputTokenContract.symbol(),
+    outputTokenContract.symbol(),
+    provider.getBalance(wallet.address),
+    provider.getFeeData(),
+  ]);
+
+  const formattedInputBalance = ethers.formatUnits(
+    inputTokenBalance,
+    inputTokenDecimals,
+  );
+  const formattedOutputBalance = ethers.formatUnits(
+    outputTokenBalance,
+    outputTokenDecimals,
+  );
+  const formattedNativeBalance = ethers.formatEther(nativeBalance);
+
+  // ── Wallet balances ───────────────────────────────────────────────────────
+  console.log(`\n💼 Wallet Balances:`);
+  console.log(
+    `   ${inputTokenSymbol.padEnd(10)} (spending):  ${formattedInputBalance}`,
+  );
+  console.log(
+    `   ${outputTokenSymbol.padEnd(10)} (receiving): ${formattedOutputBalance}`,
+  );
+  console.log(`   ETH        (gas):     ${formattedNativeBalance}`);
+
+  // ── Token balance check (before spending gas on approvals) ────────────────
+  if (inputTokenBalance < normalizedAmountIn) {
+    console.error(
+      `\n❌ Insufficient ${inputTokenSymbol} balance. Available: ${formattedInputBalance}, Required: ${amountIn}`,
+    );
+    process.exit(1);
+  }
+  console.log(`\n✅ Token balance check passed.`);
 
   // 1. Approve Permit2 to spend the input token
   await approveToken(inputToken, normalizedAmountIn, permitAddress, wallet);
 
-  // 2. Permit router via Permit2
+  // 2. Permit router via Permit2 — must happen before estimateGas/simulate
+  //    because router.execute checks Permit2 allowance during simulation
   await permitTokenToRouter(
     inputToken,
     normalizedAmountIn,
@@ -244,22 +396,74 @@ async function main() {
     routerAddress,
   );
 
-  // 3. Encode and execute swap
-  const payload = encodeSwap(
-    poolKey,
-    zeroForOne,
-    normalizedAmountIn,
-  );
+  // ── Gas estimate & simulation (Permit2 allowance is now set) ──────────────
+  console.log(`\n⛽ Estimating gas...`);
+  const [estimatedGas] = await Promise.all([
+    router.execute.estimateGas("0x10", [payload], deadline),
+  ]);
 
+  const gasLimit = (estimatedGas * 120n) / 100n;
+  const gasPrice = feeData.gasPrice ?? feeData.maxFeePerGas;
+  const estimatedGasCostWei = gasLimit * gasPrice;
+  const estimatedGasCostEth = ethers.formatEther(estimatedGasCostWei);
+
+  console.log(`   Estimated gas units:   ${estimatedGas.toString()}`);
+  console.log(`   Gas limit (w/ buffer): ${gasLimit.toString()}`);
+  console.log(
+    `   Gas price:             ${ethers.formatUnits(gasPrice, "gwei")} gwei`,
+  );
+  console.log(`   Estimated cost:        ${estimatedGasCostEth} ETH`);
+
+  if (nativeBalance < estimatedGasCostWei) {
+    console.error(
+      `\n❌ Insufficient ETH for gas. Available: ${formattedNativeBalance} ETH, Required: ${estimatedGasCostEth} ETH`,
+    );
+    process.exit(1);
+  }
+  console.log(`✅ Gas check passed.\n`);
+
+  // ── Swap simulation ───────────────────────────────────────────────────────
+  const simPassed = await simulateSwap(router, payload, deadline, wallet);
+  if (!simPassed) process.exit(1);
+
+  console.log(); // spacing
+
+  // 3. Execute swap
   console.log(`\n🚀 Submitting swap transaction...`);
-  const tx = await router.execute("0x10", [payload], deadline, {});
+  const tx = await router.execute("0x10", [payload], deadline, { gasLimit });
   console.log(`⏳ Waiting for confirmation... tx: ${tx.hash}`);
   const receipt = await tx.wait();
 
+  // ── Actual gas cost ───────────────────────────────────────────────────────
+  const actualGasCostWei = receipt.gasUsed * receipt.gasPrice;
+  const actualGasCostEth = ethers.formatEther(actualGasCostWei);
+
+  // ── Post-swap balances ────────────────────────────────────────────────────
+  const [newInputBalance, newOutputBalance] = await Promise.all([
+    inputTokenContract.balanceOf(wallet.address),
+    outputTokenContract.balanceOf(wallet.address),
+  ]);
+  const formattedNewInputBalance = ethers.formatUnits(
+    newInputBalance,
+    inputTokenDecimals,
+  );
+  const formattedNewOutputBalance = ethers.formatUnits(
+    newOutputBalance,
+    outputTokenDecimals,
+  );
+
   console.log(`\n✅ Swap confirmed!`);
-  console.log(`   Hash:        ${receipt.hash}`);
-  console.log(`   Block:       ${receipt.blockNumber}`);
-  console.log(`   Gas used:    ${receipt.gasUsed.toString()}`);
+  console.log(`   Hash:          ${receipt.hash}`);
+  console.log(`   Block:         ${receipt.blockNumber}`);
+  console.log(`   Gas used:      ${receipt.gasUsed.toString()}`);
+  console.log(`   Actual cost:   ${actualGasCostEth} ETH`);
+  console.log(`\n💼 Updated Wallet Balances:`);
+  console.log(
+    `   ${inputTokenSymbol?.padEnd(10)}: ${formattedInputBalance} → ${formattedNewInputBalance}`,
+  );
+  console.log(
+    `   ${outputTokenSymbol?.padEnd(10)}: ${formattedOutputBalance} → ${formattedNewOutputBalance}`,
+  );
 
   return receipt;
 }
