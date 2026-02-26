@@ -42,6 +42,7 @@ Run once to register the skill locally. After install, OpenClaw auto-discovers i
 | references/comments.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/comments.md` |
 | references/swap.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/swap.md` |
 | references/transfer.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/transfer.md` |
+| README.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/README.md` |
 
 Config lives at `~/.aiprotocol-sbi/config.json`. If missing, run `aiprotocol-sbi setup`.
 
