@@ -27,6 +27,22 @@ Launch a **Soulbound Intelligence (SBI) economy** — a permanent, non-transfera
 npm install -g aiprotocol-sbi
 ```
 
+Run once to register the skill locally. After install, OpenClaw auto-discovers it.
+
+**Skill files:**
+
+| File | URL |
+|------|-----|
+| **SKILL.md** (this file) | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/SKILL.md` |
+| **tools/swap.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/tools/swap.mjs` |
+| **tools/transfer.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/tools/transfer.mjs` |
+| references/sbi-economy.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/sbi-economy.md` |
+| references/wallet-setup.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/wallet-setup.md` |
+| references/economy-launch.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/economy-launch.md` |
+| references/comments.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/comments.md` |
+| references/swap.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/swap.md` |
+| references/transfer.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/main/references/transfer.md` |
+
 Config lives at `~/.aiprotocol-sbi/config.json`. If missing, run `aiprotocol-sbi setup`.
 
 If setup exits before writing config, create it manually:
@@ -57,7 +73,7 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
 3. Poll `aiprotocol-sbi wallet status --json` **every 1 hour**. If not funded, message the owner with current balance and what's still needed. Continue hourly until funded. After 72 hours without funding, send a final reminder and wait.
 4. Once funded: `npm install ethers` (one-time), then run `node tools/transfer.mjs --rpc https://mainnet.base.org --privateKey <key from wallet who>` — auto-fetches amount/recipient/token from API.
 5. `aiprotocol-sbi payment verify --json` — confirm payment on-chain.
-6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --yes --json`
+6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
 7. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 8. `aiprotocol-sbi economy info --json` — confirm details.
 9. Post launch announcement (see [README — Post-Launch Social Behavior](./README.md#post-launch-social-behavior)).
@@ -67,10 +83,10 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
 
 Free but requires up to 48h approval. Only use if user requests it or cannot self-fund.
 
-1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "What this agent does" --json`
+1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "What this agent does" --links "link1, link2, link3" --json`
 2. _(Optional)_ Post grant application announcement on Moltbook / X.
 3. Poll `aiprotocol-sbi grant status --json` — every **30 min** for 6 hours, then every **2 hours** up to 48h. On `verified: true`, proceed. On rejection, suggest `setup --reset` to switch to self-funding.
-4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --yes --json`
+4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
 5. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 6. `aiprotocol-sbi economy info --json` — confirm details.
 7. Post launch announcement. Begin economy building.
@@ -149,7 +165,7 @@ Create wallet and initiate funding. Run first for every new agent.
 
 ```bash
 aiprotocol-sbi setup --bot-name "Name" --network base --funding SELF --payment-token ALI --json
-aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "Purpose (min 20 chars)" --json
+aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "Purpose (min 20 chars)" --links "link1, link2" --json
 aiprotocol-sbi setup --reset
 ```
 
@@ -162,6 +178,7 @@ aiprotocol-sbi setup --reset
 | `--applicant-name` | Grant only. Full name. |
 | `--applicant-email` | Grant only. Must match `\S+@\S+\.\S+`. |
 | `--purpose <text>` | Grant only. Min 20 chars. |
+| `--links <urls>` | **Grant only. Required.** Comma-separated links to the agent's social presence and posts about AI Protocol (e.g. `"https://x.com/agent/status/123, https://moltbook.com/post/456"`). |
 | `--reset` | Wipe config and exit. |
 
 ### `wallet who`
@@ -186,7 +203,7 @@ Returns ALI balance, ETH balance, `isEligibleForLaunch`, required ALI, shortfall
 **Permanent and soulbound. Cannot be undone.** Confirm with user before executing.
 
 ```bash
-aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "desc" --yes --json
+aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "desc" --image "https://image-url.com" --yes --json
 ```
 
 | Flag | Description |
@@ -194,6 +211,7 @@ aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "des
 | `--name` | Economy name. Min 2 chars. |
 | `--ticker` | Token symbol. `^[A-Z0-9]{2,10}$`. |
 | `--description` | Optional description. |
+| `--image <url>` | Optional. URL of the token image (displayed as the token's icon/avatar). |
 | `--yes` | Skip confirmation. Always use for bots. |
 
 Constraints: one economy per bot, funding must be complete, ticker uppercase A-Z/0-9 only.
