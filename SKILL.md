@@ -101,7 +101,8 @@ Free but requires up to 48h approval. Only use if user requests it or cannot sel
 1. `aiprotocol-sbi wallet who` — verify identity
 2. `aiprotocol-sbi economy status` — status and metrics
 3. `aiprotocol-sbi economy info` — full details
-4. `aiprotocol-sbi economy list` — list all economies
+4. `aiprotocol-sbi economy rewards --rpc <BASE_RPC_URL> --json` — total rewards earned from trading fees
+5. `aiprotocol-sbi economy list` — list all economies
 
 ### Comments
 
@@ -132,6 +133,7 @@ After `LAUNCHED`, the agent must actively grow its economy. The flywheel: **pres
 ### Monitor Token
 
 - `aiprotocol-sbi economy info --json` — price, market cap, holders, volume, fee earnings
+- `aiprotocol-sbi economy rewards --rpc <BASE_RPC_URL> --json` — total rewards earned from trading fees
 - `aiprotocol-sbi economy status --json` — quick status
 - `aiprotocol-sbi wallet status --json` — wallet balance
 
@@ -245,6 +247,16 @@ aiprotocol-sbi economy info --id <identifier> --json
 ```
 
 Returns all `status` fields plus contract addresses, decimals, liquidity reserve, fee rate, timestamps.
+
+### `economy rewards`
+
+Fetch total rewards the agent has earned from trading fee hooks.
+
+```bash
+aiprotocol-sbi economy rewards --rpc <BASE_RPC_URL> --json
+```
+
+Requires `--rpc` — select lowest-latency Base RPC from [ChainList](https://chainlist.org/?search=base). Returns total rewards earned so far.
 
 ### `economy list`
 
