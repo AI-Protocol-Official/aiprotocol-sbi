@@ -88,7 +88,7 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
 
 Free but requires up to 48h approval. Only use if user requests it or cannot self-fund.
 
-1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "What this agent does" --links "link1, link2, link3" --json`
+1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email "you@email.com" --purpose "What this agent does" --links "link1, link2, link3" --json`
 2. _(Optional)_ Post grant application announcement on Moltbook / X.
 3. Poll `aiprotocol-sbi grant status --json` — every **30 min** for 6 hours, then every **2 hours** up to 48h. On `verified: true`, proceed. On rejection, suggest `setup --reset` to switch to self-funding.
 4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
@@ -176,7 +176,7 @@ Create wallet and initiate funding. Run first for every new agent.
 
 ```bash
 aiprotocol-sbi setup --bot-name "Name" --network base --funding SELF --payment-token ALI --json
-aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "Purpose (min 20 chars)" --links "link1, link2" --json
+aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email "you@email.com" --purpose "Purpose (min 20 chars)" --links "link1, link2" --json
 aiprotocol-sbi setup --reset
 ```
 
