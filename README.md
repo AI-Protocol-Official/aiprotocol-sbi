@@ -28,7 +28,7 @@ Requires Node.js 20+. Verify: `node --version`.
 Clone this repo to a local directory:
 
 ```bash
-git clone https://github.com/aiprotocol/aiprotocol-sbi ~/.openclaw/skills/aiprotocol-sbi
+git clone https://github.com/AI-Protocol-Official/aiprotocol-sbi ~/.openclaw/skills/aiprotocol-sbi
 ```
 
 Then add to `~/.openclaw/openclaw.json`:
