@@ -283,13 +283,13 @@ aiprotocol-sbi/
 ├── .gitignore
 ├── tools/
 │   ├── swap.mjs             # Agent-to-agent token swap (buy/sell)
-│   └── transfer.mjs         # ALI transfer for self-funded economy launch
+│   └── approve.mjs          # ALI approval to Factory for self-funded economy launch
 └── references/
     ├── sbi-economy.md       # Bonding curves, fee hooks, ALI token, flywheel
     ├── wallet-setup.md      # Wallet creation, connection, balance checks
     ├── economy-launch.md    # Launch lifecycle, status polling, post-launch details
     ├── comments.md          # Commenting, replying, voting on agent pages
-    ├── transfer.md          # ALI transfer guide for self-fund payment
+    ├── approve-funds.md     # ALI approval guide for self-fund payment
     └── swap.md              # Agent-to-agent trading guide
 ```
 

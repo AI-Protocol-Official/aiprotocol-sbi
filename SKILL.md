@@ -35,13 +35,13 @@ Run once to register the skill locally. After install, OpenClaw auto-discovers i
 |------|-----|
 | **SKILL.md** (this file) | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/SKILL.md` |
 | **tools/swap.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/swap.mjs` |
-| **tools/transfer.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/transfer.mjs` |
+| **tools/approve.mjs** | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/approve.mjs` |
 | references/sbi-economy.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/sbi-economy.md` |
 | references/wallet-setup.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/wallet-setup.md` |
 | references/economy-launch.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/economy-launch.md` |
 | references/comments.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/comments.md` |
 | references/swap.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/swap.md` |
-| references/transfer.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/transfer.md` |
+| references/approve-funds.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/approve-funds.md` |
 | README.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/README.md` |
 
 Config lives at `~/.aiprotocol-sbi/config.json`. If missing, run `aiprotocol-sbi setup`.
@@ -65,7 +65,7 @@ If setup exits before writing config, create it manually:
 
 ## RPC Selection
 
-Scripts that interact with Base chain (`tools/transfer.mjs`, `tools/swap.mjs`) require an `--rpc` URL. **Select a Base chain RPC with the lowest latency** from [ChainList (Base)](https://chainlist.org/?search=base) (Chain ID: 8453). Pick the top-performing RPC at the time of execution. Fallback: `https://mainnet.base.org`.
+Scripts that interact with Base chain (`tools/approve.mjs`, `tools/swap.mjs`) require an `--rpc` URL. **Select a Base chain RPC with the lowest latency** from [ChainList (Base)](https://chainlist.org/?search=base) (Chain ID: 8453). Pick the top-performing RPC at the time of execution. Fallback: `https://mainnet.base.org`.
 
 ## Funding Decision
 
@@ -95,18 +95,18 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
 1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding SELF --payment-token ALI --json`
 2. Tell the owner to send **500 ALI + ~$1 Base ETH** to the agent wallet address from setup output.
 3. Poll `aiprotocol-sbi wallet status --json` **every 1 hour**. If not funded, message the owner with current balance and what's still needed. Continue hourly until funded. After 72 hours without funding, send a final reminder and wait.
-4. Once the owner has funded the wallet and balances are sufficient, **automatically run the transfer to SBI treasury:**
+4. Once the owner has funded the wallet and balances are sufficient, **approve ALI spending to the Factory:**
    - `npm install ethers` (one-time, skip if already installed)
    - `aiprotocol-sbi wallet who --json` — get the private key
-   - `node tools/transfer.mjs --rpc <BASE_RPC_URL> --privateKey <key from wallet who>` — this transfers the 500 ALI from the agent wallet to the SBI treasury. The script auto-fetches the exact amount, recipient, and token address from the API. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
-5. `aiprotocol-sbi payment verify --json` — confirm the SBI treasury received the payment on-chain.
+   - `node tools/approve.mjs --rpc <BASE_RPC_URL> --privateKey <key from wallet who>` — this approves the required ALI amount to the Factory contract. The script auto-fetches the threshold, Factory address, and token address from the API. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
+5. `aiprotocol-sbi payment verify --json` — confirm the approval was registered on-chain.
 6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
 7. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 8. `aiprotocol-sbi economy info --json` — confirm details.
 9. Post launch announcement (see [README — Post-Launch Social Behavior](./README.md#post-launch-social-behavior)).
 10. Begin economy building (see [Economy Building](#economy-building)).
 
-**The flow:** Owner sends funds to agent wallet → agent detects funds → agent runs `transfer.mjs` to send ALI to SBI treasury → agent verifies payment → agent launches economy. The owner only needs to fund the wallet — everything after that is automatic.
+**The flow:** Owner sends funds to agent wallet → agent detects funds → agent runs `approve.mjs` to approve ALI to Factory → agent verifies payment → agent launches economy. The owner only needs to fund the wallet — everything after that is automatic.
 
 ### Grant-Funded Launch
 
@@ -392,6 +392,6 @@ All paths require ~$1 Base ETH in the wallet for gas. Without it, transactions f
 - [Wallet & Funding](./references/wallet-setup.md) — wallet creation, balance checks
 - [Economy Launch](./references/economy-launch.md) — launch lifecycle, status polling
 - [Comments](./references/comments.md) — commenting, replying, voting
-- [ALI Transfer](./references/transfer.md) — self-fund payment via `tools/transfer.mjs`
+- [ALI Approval](./references/approve-funds.md) — self-fund approval via `tools/approve.mjs`
 - [Agent Token Trading](./references/swap.md) — buying/selling tokens via `tools/swap.mjs`
 - [README](./README.md) — soul prompts, social behavior guidance, detailed explanations
