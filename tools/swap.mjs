@@ -6,10 +6,10 @@
  *          --token <TOKEN_ADDRESS> \
  *          --privateKey <PRIVATE_KEY> \
  *          --amountIn <TOKEN_SPENDING> \
- *          --zeroForOne <true|false>
+ *          --type <BUY|SELL>
  *
- *  --zeroForOne true  → SELL  (token → ALI)
- *  --zeroForOne false → BUY   (ALI → token)
+ *  --type SELL  → SELL  (token → ALI)
+ *  --type BUY → BUY   (ALI → token)
  */
 
 import { ethers } from "ethers";
@@ -132,10 +132,10 @@ async function approveToken(tokenAddress, amount, permitAddress, wallet) {
   const token = new ethers.Contract(tokenAddress, ERC20_ABI, wallet);
   const currentAllowance = await token.allowance(wallet.address, permitAddress);
 
-  if (currentAllowance >= amount) {
-    console.log(`✅ Allowance already sufficient: ${currentAllowance}`);
-    return null;
-  }
+  // if (currentAllowance >= amount) {
+  //   console.log(`✅ Allowance already sufficient: ${currentAllowance}`);
+  //   return null;
+  // }
 
   console.log(`🔑 Approving ${amount} of ${tokenAddress} to Permit2...`);
   const tx = await token.approve(permitAddress, amount);
@@ -147,10 +147,33 @@ async function approveToken(tokenAddress, amount, permitAddress, wallet) {
 async function permitTokenToRouter(
   tokenAddress,
   amount,
-  deadline,
+  permitExpiration,
   permit2,
   routerAddress,
 ) {
+  // Check existing Permit2 allowance before issuing a new permit.
+  // Use BigInt for all comparisons — ethers v6 returns uint160/uint48 as BigInt.
+  const ownerAddress = await permit2.runner.getAddress();
+  const nowSec = BigInt(Math.floor(Date.now() / 1000));
+
+  try {
+    const [currentAmount, currentExpiration] = await permit2.allowance(
+      ownerAddress,
+      tokenAddress,
+      routerAddress,
+    );
+
+    if (currentAmount >= amount && currentExpiration > nowSec + 60n) {
+      console.log(
+        `✅ Permit2 allowance already valid — amount: ${currentAmount}, expires: ${currentExpiration}`,
+      );
+      return null;
+    }
+  } catch (err) {
+    // If the read fails for any reason, fall through and re-permit
+    console.warn(`⚠️  Could not read Permit2 allowance: ${err.message}`);
+  }
+
   console.log(
     `🔑 Permitting ${amount} of ${tokenAddress} to Router ${routerAddress}`,
   );
@@ -159,7 +182,7 @@ async function permitTokenToRouter(
     tokenAddress,
     routerAddress,
     amount,
-    deadline,
+    permitExpiration,
   );
   const receipt = await tx.wait();
   console.log(`✅ Permit confirmed: ${receipt.hash}`);
@@ -249,7 +272,7 @@ async function main() {
   const args = parseArgs();
 
   // ── Validate required args ──────────────────────────────────────────────────
-  const required = ["rpc", "token", "privateKey", "amountIn", "zeroForOne"];
+  const required = ["rpc", "token", "privateKey", "amountIn", "type"];
   for (const key of required) {
     if (!args[key]) {
       console.error(`❌ Missing required argument: --${key}`);
@@ -261,7 +284,7 @@ async function main() {
 
   const data = await fetchTokenInfo();
 
-  const zeroForOne = args?.zeroForOne === "true";
+  const is_buy = args?.type === "BUY";
   const TOKEN_DECIMALS = data?.decimals;
   const aliToken = data?.token_address;
   const routerAddress = data?.router_address;
@@ -271,7 +294,7 @@ async function main() {
   const hook_data = data?.hook_data;
 
   console.log(
-    `\n🔄 Swap Direction: ${zeroForOne ? "🔴 SELL (token → ALI)" : "🟢 BUY (ALI → token)"}`,
+    `\n🔄 Swap Direction: ${!is_buy ? "🔴 SELL (token → ALI)" : "🟢 BUY (ALI → token)"}`,
   );
   console.log(`   Token:      ${token}`);
   console.log(`   ALI Token:  ${aliToken}`);
@@ -280,7 +303,6 @@ async function main() {
   // ── Setup ───────────────────────────────────────────────────────────────────
   const provider = new ethers.JsonRpcProvider(rpc);
   const wallet = new ethers.Wallet(privateKey, provider);
-
   console.log(`👛 Wallet: ${wallet?.address}`);
 
   // ── Normalise amounts ───────────────────────────────────────────────────────
@@ -294,6 +316,14 @@ async function main() {
   const aliLower = aliToken?.toLowerCase();
   const tokenLower = token?.toLowerCase();
   const aliIsZero = aliLower < tokenLower;
+
+  const zeroForOne = is_buy
+    ? aliIsZero
+      ? true
+      : false
+    : aliIsZero
+      ? false
+      : true;
 
   const poolKey = {
     currency0: aliIsZero ? aliToken : token,
@@ -316,8 +346,8 @@ async function main() {
   // ── Token to approve: the input token ───────────────────────────────────────
   // zeroForOne=true  → selling token (user gives `token`, receives ALI)
   // zeroForOne=false → buying  token (user gives `aliToken`, receives `token`)
-  const inputToken = zeroForOne ? token : aliToken;
-  const outputToken = zeroForOne ? aliToken : token;
+  const inputToken = is_buy ? aliToken : token;
+  const outputToken = is_buy ? token : aliToken;
   const inputTokenContract = new ethers.Contract(inputToken, ERC20_ABI, wallet);
   const outputTokenContract = new ethers.Contract(
     outputToken,
@@ -396,6 +426,7 @@ async function main() {
     routerAddress,
   );
 
+  await new Promise((resolve) => setTimeout(resolve, 5000));
   // ── Gas estimate & simulation (Permit2 allowance is now set) ──────────────
   console.log(`\n⛽ Estimating gas...`);
   const [estimatedGas] = await Promise.all([
