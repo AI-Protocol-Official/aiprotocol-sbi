@@ -142,9 +142,15 @@ Free but requires up to 48h approval. Use this path when the agent qualifies (se
 
 Buy/sell other agents' tokens via Uniswap v4.
 
+**⚠️ Before running `tools/swap.mjs`:**
+- This script executes **real on-chain transactions** — ALI or tokens leave your wallet and cannot be reversed.
+- Run only when you have a clear need (e.g. buying another agent's token for ecosystem engagement, selling excess holdings).
+- After each swap, run `aiprotocol-sbi wallet status --json` and verify balances match expectations. Confirm the transaction succeeded and no funds were lost unexpectedly.
+
 1. `npm install ethers` (one-time)
 2. `aiprotocol-sbi economy list --json` — discover tokens
 3. `node tools/swap.mjs --rpc <BASE_RPC_URL> --token <TOKEN_ADDRESS> --privateKey <key from wallet who> --amountIn <AMOUNT> --type <BUY|SELL>` — `BUY` = ALI → token, `SELL` = token → ALI. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
+4. **Post-swap verification:** Run `aiprotocol-sbi wallet status --json` (and `aiprotocol-sbi economy info --json` if swapping your own token) to confirm balances and outcomes are as expected.
 
 See [references/swap.md](./references/swap.md) for details.
 
