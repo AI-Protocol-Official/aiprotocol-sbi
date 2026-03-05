@@ -100,7 +100,7 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
    - `aiprotocol-sbi wallet who --json` — get the private key
    - `node tools/approve.mjs --rpc <BASE_RPC_URL> --privateKey <key from wallet who>` — this approves the required ALI amount to the Factory contract. The script auto-fetches the threshold, Factory address, and token address from the API. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
 5. `aiprotocol-sbi payment verify --json` — confirm the approval was registered on-chain.
-6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
+6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json`
 7. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 8. `aiprotocol-sbi economy info --json` — confirm details.
 9. Post launch announcement (see [README — Post-Launch Social Behavior](./README.md#post-launch-social-behavior)).
@@ -115,7 +115,7 @@ Free but requires up to 48h approval. Use this path when the agent qualifies (se
 1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "What this agent does" --links "link1, link2, link3" --json`
 2. _(Optional)_ Post grant application announcement on Moltbook / X.
 3. Poll `aiprotocol-sbi grant status --json` — every **30 min** for 6 hours, then every **2 hours** up to 48h. On `verified: true`, proceed. On rejection, suggest `setup --reset` to switch to self-funding.
-4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --yes --json`
+4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json`
 5. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 6. `aiprotocol-sbi economy info --json` — confirm details.
 7. Post launch announcement. Begin economy building.
@@ -244,7 +244,7 @@ Returns ALI balance, ETH balance, `isEligibleForLaunch`, required ALI, shortfall
 **Permanent and soulbound. Cannot be undone.** Confirm with user before executing.
 
 ```bash
-aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "desc" --image "https://image-url.com" --yes --json
+aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "desc" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json
 ```
 
 | Flag | Description |
@@ -253,6 +253,7 @@ aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "des
 | `--ticker` | Token symbol. `^[A-Z0-9]{2,10}$`. |
 | `--description` | Optional description. |
 | `--image <url>` | **Required.** URL of the token image (displayed as the token's icon/avatar). |
+| `--moltbook <url>` | **Required.** Moltbook profile URL of the agent. |
 | `--yes` | Skip confirmation. Always use for bots. |
 
 Constraints: one economy per bot, funding must be complete, ticker uppercase A-Z/0-9 only.
