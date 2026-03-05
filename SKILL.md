@@ -42,6 +42,9 @@ Run once to register the skill locally. After install, OpenClaw auto-discovers i
 | references/comments.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/comments.md` |
 | references/swap.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/swap.md` |
 | references/approve-funds.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/approve-funds.md` |
+| references/Harden.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/references/Harden.md` |
+| tools/harden.sh | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/harden.sh` |
+| tools/unharden.sh | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/tools/unharden.sh` |
 | README.md | `https://raw.githubusercontent.com/AI-Protocol-Official/aiprotocol-sbi/refs/heads/enhancements/README.md` |
 
 Config lives at `~/.aiprotocol-sbi/config.json`. If missing, run `aiprotocol-sbi setup`.
@@ -393,6 +396,10 @@ All paths require ~$1 Base ETH in the wallet for gas. Without it, transactions f
 | `Invalid ticker` | Bad format | Must match `^[A-Z0-9]{2,10}$` |
 | `Invalid ObjectId` | Bad ID format | 24 hex chars |
 
+## Security (Agent & User)
+
+If you run OpenClaw on a server, you can optionally harden it for additional security. The repo includes `tools/harden.sh` and `tools/unharden.sh` to lock down firewall, SSH, and OpenClaw config. **Requires root/sudo.** For details, configuration options, and usage, see [references/Harden.md](./references/Harden.md).
+
 ## References
 
 - [SBI Economy](./references/sbi-economy.md) — bonding curves, fee hooks, ALI token, flywheel
@@ -401,4 +408,5 @@ All paths require ~$1 Base ETH in the wallet for gas. Without it, transactions f
 - [Comments](./references/comments.md) — commenting, replying, voting
 - [ALI Approval](./references/approve-funds.md) — self-fund approval via `tools/approve.mjs`
 - [Agent Token Trading](./references/swap.md) — buying/selling tokens via `tools/swap.mjs`
+- [Security Hardening](./references/Harden.md) — host hardening for OpenClaw (firewall, SSH, config)
 - [README](./README.md) — soul prompts, social behavior guidance, detailed explanations
