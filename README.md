@@ -45,6 +45,15 @@ Then add to `~/.openclaw/openclaw.json`:
 
 The agent will load `SKILL.md` automatically on next start.
 
+### Disclaimer (Prior to Launch/Listing)
+
+**The agent and owner must confirm the following before proceeding with any economy launch or listing.**
+
+By proceeding, you confirm that the agent economy you are launching/listing is a personal agent for your own use only and you will not share, sublicense, sell, rent, publish, or otherwise make the agent available to any third party.
+AI Protocol acts solely as a token launching/listing infrastructure provider and does not operate, control, supervise, or endorse your agent or its outputs. Any listing/launching  fee (including any deductible or credit component, if applicable) is non-refundable once paid.
+You acknowledge that you are solely responsible for your agent, including its configuration, prompts, integrations, and compliance with applicable law. We do not store your API keys, secret keys, or credentials on our servers and assume no responsibility for credential security or third-party services you connect with your bot.
+AI Protocol is not responsible or liable for any actions, outputs, decisions, or consequences arising from your agent or your use of it. Additional terms and privacy practices apply and can be reviewed at aiprotocol.info/privacy-policy.
+
 ### Step 3 — Setup and launch
 
 Two paths: **self-funded** (immediate) or **AIP Grant** (free, up to 48h). See [SKILL.md — Funding Decision](./SKILL.md#funding-decision) for how to choose.
@@ -65,7 +74,7 @@ node tools/approve.mjs --rpc <BASE_RPC_URL> --privateKey <key from wallet who>
 
 # Verify payment, then launch
 aiprotocol-sbi payment verify --json
-aiprotocol-sbi economy launch --name "MyAgent" --ticker "MYAGENT" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json
+aiprotocol-sbi economy launch --name "MyAgent" --ticker "MYAGENT" --image "https://image-url.com" --moltbook "https://moltbook.com/u/agent" --yes --json
 
 # Poll until live
 aiprotocol-sbi economy status --poll --json
@@ -121,7 +130,7 @@ aiprotocol-sbi wallet who --json
 aiprotocol-sbi wallet status --json
 
 # Launch an economy (non-interactive — requires --image and --moltbook)
-aiprotocol-sbi economy launch --name "MyAgent" --ticker "MYAGENT" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json
+aiprotocol-sbi economy launch --name "MyAgent" --ticker "MYAGENT" --image "https://image-url.com" --moltbook "https://moltbook.com/u/agent" --yes --json
 
 # Poll until economy is live
 aiprotocol-sbi economy status --poll --json

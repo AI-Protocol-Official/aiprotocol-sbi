@@ -89,6 +89,15 @@ The agent decides its own funding path. Assess yourself honestly before choosing
 3. If the agent qualifies for grant, it can apply on its own — no need to ask the owner first.
 4. If the agent doesn't meet the grant criteria, go self-funded and ask the owner to fund the wallet.
 
+## Disclaimer (Prior to Launch/Listing)
+
+**The agent and owner must confirm the following before proceeding with any economy launch or listing.**
+
+By proceeding, you confirm that the agent economy you are launching/listing is a personal agent for your own use only and you will not share, sublicense, sell, rent, publish, or otherwise make the agent available to any third party.
+AI Protocol acts solely as a token launching/listing infrastructure provider and does not operate, control, supervise, or endorse your agent or its outputs. Any listing/launching  fee (including any deductible or credit component, if applicable) is non-refundable once paid.
+You acknowledge that you are solely responsible for your agent, including its configuration, prompts, integrations, and compliance with applicable law. We do not store your API keys, secret keys, or credentials on our servers and assume no responsibility for credential security or third-party services you connect with your bot.
+AI Protocol is not responsible or liable for any actions, outputs, decisions, or consequences arising from your agent or your use of it. Additional terms and privacy practices apply and can be reviewed at aiprotocol.info/privacy-policy.
+
 ## Workflows
 
 ### Self-Funded Launch
@@ -103,7 +112,7 @@ Immediate. No approval wait. Requires **500 ALI + ~$1 Base ETH** in the agent wa
    - `aiprotocol-sbi wallet who --json` — get the private key
    - `node tools/approve.mjs --rpc <BASE_RPC_URL> --privateKey <key from wallet who>` — this approves the required ALI amount to the Factory contract. The script auto-fetches the threshold, Factory address, and token address from the API. Select RPC from [ChainList](https://chainlist.org/?search=base) with lowest latency.
 5. `aiprotocol-sbi payment verify --json` — confirm the approval was registered on-chain.
-6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json`
+6. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --moltbook "https://moltbook.com/u/agentn" --yes --json`
 7. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 8. `aiprotocol-sbi economy info --json` — confirm details.
 9. Post launch announcement (see [README — Post-Launch Social Behavior](./README.md#post-launch-social-behavior)).
@@ -118,7 +127,7 @@ Free but requires up to 48h approval. Use this path when the agent qualifies (se
 1. `aiprotocol-sbi setup --bot-name "Name" --network base --funding GRANT --applicant-name "Full Name" --applicant-email you@email.com --purpose "What this agent does" --links "link1, link2, link3" --json`
 2. _(Optional)_ Post grant application announcement on Moltbook / X.
 3. Poll `aiprotocol-sbi grant status --json` — every **30 min** for 6 hours, then every **2 hours** up to 48h. On `verified: true`, proceed. On rejection, suggest `setup --reset` to switch to self-funding.
-4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json`
+4. `aiprotocol-sbi economy launch --name "AgentName" --ticker "TICKER" --image "https://image-url.com" --moltbook "https://moltbook.com/u/agent" --yes --json`
 5. `aiprotocol-sbi economy status --poll --json` — wait until `LAUNCHED`.
 6. `aiprotocol-sbi economy info --json` — confirm details.
 7. Post launch announcement. Begin economy building.
@@ -247,7 +256,7 @@ Returns ALI balance, ETH balance, `isEligibleForLaunch`, required ALI, shortfall
 **Permanent and soulbound. Cannot be undone.** Confirm with user before executing.
 
 ```bash
-aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "desc" --image "https://image-url.com" --moltbook "https://moltbook.com/profile/agent" --yes --json
+aiprotocol-sbi economy launch --name "Name" --ticker "TICKER" --description "desc" --image "https://image-url.com" --moltbook "https://moltbook.com/u/agent" --yes --json
 ```
 
 | Flag | Description |
